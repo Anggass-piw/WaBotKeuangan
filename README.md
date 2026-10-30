@@ -59,9 +59,13 @@ Kamu (WhatsApp) ──► Nomor bot (Termux + Baileys) ──► Apps Script (We
 
    ```javascript
    const SHEET_ID = 'ID_SPREADSHEET_KAMU';
-   const KUNCI = 'KATA_RAHASIA_BUATANMU';  // harus sama dengan di bot.js
-   const TAB_UTAMA = 'NamaKamu';           // tabnya bernama "Transaksi"
-   const ADMIN = ['NamaKamu', 'NamaTeman']; // yang boleh pakai /semua
+   const KUNCI = 'KUNCI_ACAK_YANG_SAMA';
+   const TAB_UTAMA = 'NamaKamu';             // tabnya bernama "Transaksi"
+   const ADMIN = ['NamaKamu', 'NamaTeman'];  // yang boleh pakai /semua
+   const TOKEN_PENGGUNA = {
+     'NamaKamu': 'TOKEN_ACAK_UNIK_NAMAKAMU',
+     'NamaTeman': 'TOKEN_ACAK_UNIK_NAMATEMAN',
+   };
    ```
 
 4. Klik **Deploy → New deployment → ikon roda gigi → Web app**:
@@ -98,17 +102,19 @@ Buka dengan `nano bot.js`, lalu ubah bagian atas:
 
 ```javascript
 const APPS_URL = 'URL_WEBAPP_APPS_SCRIPT';   // URL berakhiran /exec
-const KUNCI = 'KATA_RAHASIA_BUATANMU';       // sama dengan di Code.gs
+const KUNCI = 'KUNCI_ACAK_YANG_SAMA';
 const NOMOR = '628xxxxxxxxxx';               // nomor bot: awalan 62, tanpa + dan tanpa 0
 
 const PENGGUNA = {
-  NamaKamu: ['628xxxxxxxxxx'],    // nomor/ID kamu
-  NamaTeman: ['628yyyyyyyyyy'],   // nomor/ID orang kedua
+  'NamaKamu': { ids: ['628xxxxxxxxxx'], token: 'TOKEN_ACAK_UNIK_NAMAKAMU' },
+  'NamaTeman': { ids: ['628yyyyyyyyyy'], token: 'TOKEN_ACAK_UNIK_NAMATEMAN' },
 };
 ```
 
 Aturan penting:
 - Nama di `PENGGUNA` harus **sama persis** (termasuk huruf besar-kecil) dengan `TAB_UTAMA` dan `ADMIN` di `Code.gs`.
+- Buat token acak unik untuk setiap orang. Nilai `token` di `bot.js` harus sama persis dengan entri nama orang itu di `TOKEN_PENGGUNA` pada `Code.gs`; jangan pakai satu token yang sama untuk beberapa orang.
+- Nama pengguna tidak lagi dikirim sebagai bukti identitas. Apps Script menentukan nama kanonis dari token yang cocok di konfigurasi server, lalu memeriksa hak `/semua` berdasarkan nama tersebut.
 - Satu orang boleh punya beberapa ID, misalnya `['628123456789', '163282493140999']`. Lihat bagian [Mencari ID pengguna](#mencari-id-pengguna).
 - Nama pertama di `PENGGUNA` adalah pemilik chat ke diri sendiri pada nomor bot.
 
@@ -212,9 +218,9 @@ WhatsApp kini memakai dua bentuk ID: nomor telepon biasa dan ID panjang (LID). C
 
 ## Keamanan
 
-- **Jangan** mengunggah ke GitHub: folder `auth/`, nilai `KUNCI`, URL Web App, ID spreadsheet, dan nomor telepon asli. Semuanya bisa dipakai orang lain untuk mengakses akunmu.
-- Tinggalkan placeholder di repo, dan isi nilai aslinya hanya di perangkatmu.
-- Karena Web App berakses **Anyone**, `KUNCI` adalah satu-satunya penjaga. Pilih kata acak yang panjang.
+- **Jangan** mengunggah ke GitHub: folder `auth/`, nilai `KUNCI`, token pengguna, URL Web App, ID spreadsheet, dan nomor telepon asli. Semuanya harus tetap rahasia.
+- Tinggalkan placeholder di repo. Isi nilai aslinya pada salinan lokal `bot.js` dan project Apps Script, lalu jangan commit perubahan berisi rahasia.
+- Karena Web App berakses **Anyone**, gunakan `KUNCI` acak yang panjang dan token acak terpisah untuk setiap pengguna. Buat token dengan `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`; pasang token yang sama untuk pengguna terkait di konfigurasi `bot.js` dan Apps Script.
 - Set spreadsheet ke **Restricted** (Share → General access). Bot tetap bisa menulis karena berjalan atas akun pemilik script.
 
 Contoh `.gitignore`:

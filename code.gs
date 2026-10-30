@@ -1,7 +1,13 @@
 const SHEET_ID = 'Kode_SpreadSheet';
-const KUNCI = 'GANTI_DENGAN_KATA_ACAK'; // harus sama dengan di bot.js
-const TAB_UTAMA = 'Pengguna 1';           // tabnya tetap bernama "Transaksi"
-const ADMIN = ['Pengguna 1', 'Pengguna 2'];     // yang boleh pakai /semua (ganti Pengguna 2 dengan namanya)
+const KUNCI = 'GANTI_DENGAN_KUNCI_ACAK_YANG_SAMA'; // harus sama dengan di bot.js
+const TAB_UTAMA = 'Pengguna 1';                    // tabnya tetap bernama "Transaksi"
+const ADMIN = ['Pengguna 1', 'Pengguna 2'];        // yang boleh pakai /semua
+const TOKEN_PENGGUNA = {
+  'Nomor Tertaut': 'GANTI_TOKEN_UNIK_NOMOR_TERTAUT',
+  'Pengguna 1': 'GANTI_TOKEN_UNIK_PENGGUNA_1',
+  'Pengguna 2': 'GANTI_TOKEN_UNIK_PENGGUNA_2',
+  'Pengguna 3': 'GANTI_TOKEN_UNIK_PENGGUNA_3',
+};
 
 // ===== Ambil tab milik user, buat otomatis kalau belum ada =====
 function ambilSheet(user) {
@@ -25,12 +31,24 @@ function ambilSheet(user) {
   return sheet;
 }
 
+function penggunaDariToken(token) {
+  if (typeof token !== 'string' || !token || token.startsWith('GANTI_')) return null;
+  const cocok = Object.entries(TOKEN_PENGGUNA).filter(([, tokenTerdaftar]) => tokenTerdaftar === token);
+  return cocok.length === 1 ? cocok[0][0] : null;
+}
+
 // ===== Pintu masuk dari bot.js =====
 function doPost(e) {
   try {
-    const { text, key, user } = JSON.parse(e.postData.contents);
-    if (key !== KUNCI) return ContentService.createTextOutput('Akses ditolak');
+    const { text, key, token } = JSON.parse(e.postData.contents);
+    if (KUNCI.startsWith('GANTI_') || key !== KUNCI) {
+      return ContentService.createTextOutput('Akses ditolak');
+    }
+    const user = penggunaDariToken(token);
     if (!user) return ContentService.createTextOutput('Pengguna tidak dikenal');
+    if (typeof text !== 'string' || !text.trim()) {
+      return ContentService.createTextOutput('Perintah tidak valid');
+    }
     return ContentService.createTextOutput(proses(text, user));
   } catch (err) {
     return ContentService.createTextOutput('Error: ' + err.message);

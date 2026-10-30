@@ -1,18 +1,17 @@
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 
 const APPS_URL = 'Link_Appscript';
-const KUNCI = 'Kunci_Sama_Seperti_AppsScript';
+const KUNCI = 'GANTI_DENGAN_KUNCI_ACAK_YANG_SAMA';
 const NOMOR = '62';
 
 const PENGGUNA = {
-  Nomor Tertaut: [''],
-  Pengguna 1: ['628'],
-  Pengguna 2: ['628'],
-  Pengguna 3: ['628']
+  'Nomor Tertaut': { ids: [''], token: 'GANTI_TOKEN_UNIK_NOMOR_TERTAUT' },
+  'Pengguna 1': { ids: ['628'], token: 'GANTI_TOKEN_UNIK_PENGGUNA_1' },
+  'Pengguna 2': { ids: ['628'], token: 'GANTI_TOKEN_UNIK_PENGGUNA_2' },
+  'Pengguna 3': { ids: ['628'], token: 'GANTI_TOKEN_UNIK_PENGGUNA_3' },
 };
 
 let sudahMinta = false;
-
 
 function bukaPesan(msg) {
   let x = msg;
@@ -38,10 +37,9 @@ function ambilTeks(msg) {
 
 const idDari = jid => (jid || '').split('@')[0].split(':')[0];
 
-
 function cariNama(...ids) {
-  for (const [nama, daftar] of Object.entries(PENGGUNA)) {
-    if (ids.some(i => i && daftar.includes(i))) return nama;
+  for (const [nama, pengguna] of Object.entries(PENGGUNA)) {
+    if (ids.some(i => i && pengguna.ids.includes(i))) return nama;
   }
   return null;
 }
@@ -97,10 +95,16 @@ async function start() {
       console.log('Pesan:', JSON.stringify({ text, jid, alt: m.key.remoteJidAlt, user }));
       if (!user) continue;
 
+      const token = PENGGUNA[user].token;
+      if (!token || token.startsWith('GANTI_') || KUNCI.startsWith('GANTI_')) {
+        console.log('Konfigurasi kunci/token belum lengkap untuk pengguna:', user);
+        continue;
+      }
+
       try {
         const res = await fetch(APPS_URL, {
           method: 'POST',
-          body: JSON.stringify({ text, key: KUNCI, user }),
+          body: JSON.stringify({ text, key: KUNCI, token }),
         });
         const balasan = await res.text();
         console.log('Balasan Apps Script:', balasan.slice(0, 200));
